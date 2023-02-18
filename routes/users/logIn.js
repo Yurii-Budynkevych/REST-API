@@ -1,7 +1,11 @@
 const express = require('express');
 const Joi = require('joi');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const jsonWebToken = require('jsonwebtoken');
 const { UsersModel } = require('../../models/usersModel');
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const router = express.Router();
 
@@ -19,15 +23,24 @@ router.post('/', async (req, res, next) => {
 
   const user = await UsersModel.findOne({ email });
   if (!user) {
-    res.status(400).json({ message: 'Wrong email or password' });
+    res.status(401).json({ message: 'Wrong email or password' });
   }
 
   const isValidPassword = bcrypt.compare(password, user.password);
   if (!isValidPassword) {
-    res.status(400).json({ message: 'Wrong email or password' });
+    res.status(401).json({ message: 'Wrong email or password' });
   }
 
-  const accsessToken = 'uytbvrfcd';
+  const key = crypto.randomUUID();
+  await UsersModel.findOneAndUpdate({ email }, { sessionKey: key });
+
+  const accsessToken = jsonWebToken.sign(
+    { userId: user._id.toString(), sessionKey: key },
+    JWT_SECRET,
+    {
+      expiresIn: '10h',
+    }
+  );
   res.status(200).json({ accsessToken });
 });
 

@@ -1,23 +1,26 @@
 const express = require('express');
 const Joi = require('joi');
 const { ContactsModel } = require('../../models/contactsModel');
+const { authUser } = require('../../middlewares/userAuthMiddleware');
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
-  const data = await ContactsModel.find({});
+router.get('/', authUser, async (req, res, next) => {
+  const { _id } = req.user;
+  const data = await ContactsModel.find({ owner: _id });
   res.json(data);
 });
 
-router.get('/:contactId', async (req, res, next) => {
-  const data = await ContactsModel.findById(req.params.contactId);
+router.get('/:contactId', authUser, async (req, res, next) => {
+  const { _id } = req.user;
+  const data = await ContactsModel.findOne({ _id: req.params.contactId, owner: _id });
   if (!data) {
     return res.status(404).json({ message: 'contact not found' });
   }
   res.json(data);
 });
 
-router.post('/', async (req, res, next) => {
+router.post('/', authUser, async (req, res, next) => {
   const schema = Joi.object({
     name: Joi.string().alphanum().min(3).max(30).required(),
     email: Joi.string().email().required(),
@@ -29,19 +32,22 @@ router.post('/', async (req, res, next) => {
     return res.status(400).json({ message: 'bad request', info: validationResult.error });
   }
 
-  const data = await ContactsModel.create(req.body);
+  const { _id } = req.user;
+  const { name, email, phone } = req.body;
+  const data = await ContactsModel.create({ name, email, phone, owner: _id });
   res.json(data);
 });
 
-router.delete('/:contactId', async (req, res, next) => {
-  const data = await ContactsModel.findByIdAndDelete(req.params.contactId);
+router.delete('/:contactId', authUser, async (req, res, next) => {
+  const { _id } = req.user;
+  const data = await ContactsModel.findOneAndDelete({ _id: req.params.contactId, owner: _id });
   if (!data) {
     return res.status(404).json({ message: 'contact not found' });
   }
   res.status(200).json({ message: 'done' });
 });
 
-router.put('/:contactId', async (req, res, next) => {
+router.put('/:contactId', authUser, async (req, res, next) => {
   const schema = Joi.object({
     name: Joi.string().alphanum().min(3).max(30).required(),
     email: Joi.string().email().required(),
@@ -51,12 +57,17 @@ router.put('/:contactId', async (req, res, next) => {
   if (validationResult.error) {
     return res.status(400).json({ message: 'bad request', info: validationResult.error });
   }
-
-  await ContactsModel.findByIdAndUpdate(req.params.contactId, req.body);
+// todo diffrent user logic
+  const { _id } = req.user;
+  const { name, email, phone } = req.body;
+  await ContactsModel.findOneAndUpdate(
+    { _id: req.params.contactId, owner: _id },
+    { name, email, phone, owner: _id }
+  );
   res.status(200).json({ message: 'done' });
 });
 
-router.patch('/:contactId', async (req, res, next) => {
+router.patch('/:contactId', authUser, async (req, res, next) => {
   const schema = Joi.object({
     favorite: Joi.boolean().required(),
   });

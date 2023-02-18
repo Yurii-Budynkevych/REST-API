@@ -4,6 +4,7 @@ const contactsSchema = mongoose.Schema({
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'users',
+    required: true,
   },
   name: {
     type: String,
