@@ -1,6 +1,7 @@
 const express = require('express');
 const Joi = require('joi');
-const { ContactsModel } = require('../../models/contacts');
+const { ContactsModel } = require('../../models/contactsModel');
+const { authUser } = require('../../middlewares/userAuthMiddleware');
 
 const router = express.Router();
 
@@ -33,11 +34,12 @@ router.post('/', async (req, res, next) => {
   res.json(data);
 });
 
-router.delete('/:contactId', async (req, res, next) => {
-  const data = await ContactsModel.findByIdAndDelete(req.params.contactId);
+router.delete('/:contactId', authUser, async (req, res, next) => {
   if (!data) {
     return res.status(404).json({ message: 'contact not found' });
   }
+  const { _id } = req.user;
+  const data = await ContactsModel.findOneAndDelete({ _id: req.params.contactId, owner: _id });
   res.status(200).json({ message: 'done' });
 });
 
