@@ -1,6 +1,7 @@
 const express = require('express');
 const Joi = require('joi');
 const bcrypt = require('bcrypt');
+const gravatar = require('gravatar');
 const { UsersModel } = require('../../models/usersModel');
 
 const router = express.Router();
@@ -23,7 +24,7 @@ router.post('/', async (req, res, next) => {
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
-  await UsersModel.create({ email, password: passwordHash });
+  await UsersModel.create({ email, password: passwordHash, avatarURL: gravatar.url(email) });
   res.status(201).json({ message: 'ok' });
 });
 
