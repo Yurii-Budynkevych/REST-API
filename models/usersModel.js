@@ -10,6 +10,10 @@ const usersSchema = mongoose.Schema({
     required: [true, 'Email is required'],
     unique: true,
   },
+  avatarURL: {
+    type: String,
+    default: './public/avatars/bird.jpg',
+  },
   subscription: {
     type: String,
     enum: ['starter', 'pro', 'business'],
