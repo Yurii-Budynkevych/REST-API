@@ -7,13 +7,11 @@ const sendEmailVerificationLetter = async (email, verificationToken) => {
     from: 'yurii.budynkevych@gmail.com',
     subject: 'Verify your email',
     text: `follow this to verify your email address: localhost:3000/users/vetify/${verificationToken} `,
-    html: `<a href="http://localhost:3000/users/vetify/${verificationToken}">Click to verify your email address</a>`,
+    html: `<a href="http://localhost:3000/users/verify/${verificationToken}">Click to verify your email address</a>`,
   };
   sgMail
     .send(msg)
-    .then(() => {
-      console.log('Email sent');
-    })
+    .then()
     .catch(error => {
       console.error(error);
     });

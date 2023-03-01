@@ -25,6 +25,9 @@ router.post('/', async (req, res, next) => {
   if (!user) {
     res.status(401).json({ message: 'Wrong email or password' });
   }
+  if (user.verificationToken) {
+    res.status(401).json({ message: 'Verify your email first please' });
+  }
 
   const isValidPassword = bcrypt.compare(password, user.password);
   if (!isValidPassword) {
