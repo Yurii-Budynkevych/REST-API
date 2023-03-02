@@ -1,12 +1,15 @@
 const express = require('express');
+const { v4: uuidv4 } = require('uuid');
 const Joi = require('joi');
 const bcrypt = require('bcrypt');
 const gravatar = require('gravatar');
 const { UsersModel } = require('../../models/usersModel');
+const { sendEmailVerificationLetter } = require('../../services/email');
 
 const router = express.Router();
 
 router.post('/', async (req, res, next) => {
+  const verificationToken = uuidv4();
   const { email, password } = req.body;
   const user = await UsersModel.findOne({ email });
 
@@ -24,7 +27,13 @@ router.post('/', async (req, res, next) => {
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
-  await UsersModel.create({ email, password: passwordHash, avatarURL: gravatar.url(email) });
+  await UsersModel.create({
+    email,
+    password: passwordHash,
+    avatarURL: gravatar.url(email),
+    verificationToken,
+  });
+  sendEmailVerificationLetter(email, verificationToken);
   res.status(201).json({ message: 'ok' });
 });
 

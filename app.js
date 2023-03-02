@@ -8,6 +8,7 @@ const loginRouter = require('./routes/users/logIn');
 const logoutRouter = require('./routes/users/logOut');
 const currentUserRouter = require('./routes/users/current');
 const avatarRouter = require('./routes/users/avatars');
+const verify = require('./routes/users/verify');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/users/logIn', loginRouter);
 app.use('/users/logOut', logoutRouter);
 app.use('/users/current', currentUserRouter);
 app.use('/users/avatars', avatarRouter);
+app.use('/users/verify', verify);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Page not found' });
